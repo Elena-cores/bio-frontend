@@ -1,36 +1,50 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Photo } from '../models/photo';
 import BookList from '../components/bookList';
+import BookSearchFilter from '../components/bookSearchFilter';
 
 function PhotoPageList() {
     // const [count, setCount] = useState(0)
-    const [photos, setPhotos] = useState<Photo[]>([
-        {
-            albumId: 1,
-            id: 1,
-            title: "accusamus beatae ad facilis cum similique qui sunt",
-            url: "https://via.placeholder.com/600/92c952",
-            thumbnailUrl: "https://via.placeholder.com/150/92c952",
-        },
-        {
-            albumId: 1,
-            id: 2,
-            title: "reprehenderit est deserunt velit ipsam",
-            url: "https://via.placeholder.com/600/771796",
-            thumbnailUrl: "https://via.placeholder.com/150/771796"
-        },
-        {
-            albumId: 1,
-            id: 3,
-            title: "officia porro iure quia iusto qui ipsa ut modi",
-            url: "https://via.placeholder.com/600/24f355",
-            thumbnailUrl: "https://via.placeholder.com/150/24f355"
-        },
-    ]);
+    const [photos, setPhotos] = useState<Photo[]>([]);
+    const [filteredPhotos, setFilteredPhotos] = useState<Photo[]>([]);
+
+    const [loading, setLoading] = useState(true);
+    const [contador, setContador] = useState(0);
+
+    const handleClick = () => {
+        setContador(contador + 1);
+    }
+
+    const fetchPhotos = async() => {
+        console.log("fetch photos");
+        const response: Response = await fetch("https://jsonplaceholder.typicode.com/photos", { method: "GET" });
+        const resultados = await response.json();
+
+        setPhotos(resultados);
+        setFilteredPhotos(resultados);
+        setLoading(false);
+    }
+
+    const filterPhotos = (texto: string) => {
+        const filtered = photos.filter(p => p.title.includes(texto));
+        setFilteredPhotos(filtered);
+    }
+
+    useEffect(() => {
+        fetchPhotos()
+    }, [])
   
     return (
       <>
-        <BookList photos={photos} />
+        { 
+            loading 
+                ? <p>loading...</p> 
+                : <>
+                    <button onClick={handleClick}>Click { contador }</button>
+                    <BookSearchFilter photos={filteredPhotos} handleChange={filterPhotos} />
+                    <BookList photos={filteredPhotos} />
+                  </>
+        }       
       </>
     )
 }
